@@ -1,0 +1,11 @@
+{
+    "name": "@liuyc-vue/utils",
+    "version": "0.0.1",
+    "exports": {
+        ".": "./dist/index.js",
+        "./src/": "./src/"
+    },
+    "files": [
+        "dist"
+    ]
+}

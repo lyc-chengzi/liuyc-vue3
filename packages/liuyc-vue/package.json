@@ -1,0 +1,23 @@
+{
+    "name": "liuyc-vue",
+    "version": "0.0.3",
+    "exports": {
+        ".": {
+            "import": "./dist/liuyc-vue.mjs",
+            "require": "./dist/liuyc-vue.umd.js"
+        },
+        "./src/": "./src/",
+        "./src/directives": "./src/directives/index.ts"
+    },
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@liuyc-vue/utils": "workspace:^0.0.1",
+        "jquery": "^3.6.3",
+        "vue": "^3.2.47"
+    },
+    "devDependencies": {
+        "@types/jquery": "^3.5.16"
+    }
+}

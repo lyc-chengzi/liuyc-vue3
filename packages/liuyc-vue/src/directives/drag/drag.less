@@ -1,0 +1,20 @@
+.lv-drag-list {
+    .lv-drag-item {
+        cursor: move;
+        user-select: none;
+        &.drag-over {
+            border-top: 2px solid steelblue;
+        }
+    }
+}
+.lv-drag-mask {
+    cursor: move;
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+    border: 1px dashed #aaccee;
+}
