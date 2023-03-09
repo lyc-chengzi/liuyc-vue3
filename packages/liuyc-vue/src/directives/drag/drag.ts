@@ -63,9 +63,14 @@ const bodyMouseMove = (e: any) => {
 // 鼠标按下，一定延迟后拖动开始
 const bodyMouseDown = (e: any) => {
     mouseDownTimeout = window.setTimeout(() => {
+        if (
+            !e.currentTarget ||
+            !(e.currentTarget as HTMLElement).classList.contains(dragItemClassName)
+        )
+            return false;
+        dragItem = e.currentTarget as HTMLElement;
         // 拖动开始
         dragItemDragging = true;
-        dragItem = e.target as HTMLElement;
         const clientReact = dragItem.getBoundingClientRect();
         $dragItemMask = $('<div class="lv-drag-mask"></div>');
         const $dragItem = $(dragItem);
@@ -73,7 +78,7 @@ const bodyMouseDown = (e: any) => {
         dragStartPosition.targetY = clientReact.y;
         dragStartPosition.mouseX = e.clientX;
         dragStartPosition.mouseY = e.clientY;
-        $log('item drag start', clientReact, dragStartPosition);
+        $log('item drag start', e);
         const style = {
             top: clientReact.y + 'px',
             left: clientReact.x + 'px',
@@ -98,9 +103,9 @@ const bodyMouseUp = (e: any) => {
 // 可拖动项被拖动到其他项的事件
 const bodyMouseOver = (e: any) => {
     if (dragItemDragging) {
-        $log('drag over .....', e);
-        if (e.target) {
-            const $target = $(e.target);
+        if (e.target && e.currentTarget && e.target === e.currentTarget) {
+            $log('drag over .....', e);
+            const $target = $(e.currentTarget);
             $(`.${dragItemClassName}`).removeClass('drag-over');
             $target.addClass('drag-over');
         }

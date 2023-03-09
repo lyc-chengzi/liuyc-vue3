@@ -17,9 +17,16 @@
                 <li v-lvDragItem>第2-4项</li>
             </ul>
         </div>
+        <div class="drag-list" v-lvDrag>
+            <WelcomeItem v-for="item in data2" :key="item.id" v-lvDragItem />
+        </div>
     </div>
 </template>
-
+<script lang="ts" setup>
+import { reactive } from 'vue';
+import WelcomeItem from '../components/WelcomeItem.vue';
+const data2 = reactive([{ id: '1' }, { id: '2' }, { id: '3' }]);
+</script>
 <style lang="less">
 .lvDemo {
     h3 {
