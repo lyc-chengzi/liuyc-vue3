@@ -13,7 +13,7 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write packages/",
-    "pub": "run-p type-check publish:lv",
+    "pub": "run-p type-check build-only publish:lv",
     "publish:lv": "pnpm publish -F liuyc-vue"
   },
   "dependencies": {
