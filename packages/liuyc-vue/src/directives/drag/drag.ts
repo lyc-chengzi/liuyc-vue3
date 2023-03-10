@@ -1,7 +1,7 @@
 import type { Directive, DirectiveBinding, VNode } from 'vue';
 import $ from 'jquery';
 import { guid2 } from '@liuyc-vue/utils/src/uuid';
-import { $log } from '@liuyc-vue/utils/src/log';
+import { $log, $warn } from '@liuyc-vue/utils/src/log';
 import './drag.less';
 
 export interface IDragListOptions {
@@ -15,6 +15,10 @@ export interface IDragListOptions {
     onDragEnd?: () => void; // 拖动结束
     onDragFinish?: () => void; // 有效拖动(拖动对象发生了位置变化)
     onDragIn?: (index: number) => void; // 有效拖动(从其他box的item拖动到目标box)
+}
+
+export interface IDragItemOptions {
+    item: any;
 }
 
 // 拖动列表样式
@@ -36,6 +40,7 @@ const dragItemMap = new WeakMap<
     {
         uuid: string;
         vnode: VNode;
+        item: any;
     }
 >();
 
@@ -45,7 +50,7 @@ document.body.addEventListener('dblclick', () => {
 
 // 指令默认参数
 const defaultOptions: IDragListOptions = {
-    delay: 200,
+    delay: 300,
     disable: false,
     key: 'id',
     data: []
@@ -135,6 +140,7 @@ const bodyMouseDown = (e: any) => {
         }
         // $(dragItem).css(style);
     }, defaultOptions.delay);
+    return false;
 };
 
 // 鼠标抬起，拖动结束
@@ -148,18 +154,12 @@ const bodyMouseUp = (e: any) => {
             const $dragList = $dragItem.parents('.lv-drag-list').first();
             // 触发原始拖动对象box 拖动结束 回调函数
             const dragList = dragListMap.get($dragList[0]);
-            if (dragList) {
-                $log('drag end callback ---------', $dragList, dragList);
-                if (dragList.options.onDragEnd) {
-                    dragList.options.onDragEnd();
-                }
+            if (dragList && dragList.options.onDragEnd) {
+                dragList.options.onDragEnd();
             }
+
             // 有效拖动
             if (targetItem && dragItem !== targetItem) {
-                if (dragList && dragList.options.onDragFinish) {
-                    dragList.options.onDragFinish();
-                }
-
                 // 目标对象
                 const $targetItem = $(targetItem);
                 // 找到正确的目标对象所在box
@@ -167,19 +167,46 @@ const bodyMouseUp = (e: any) => {
                     ? $targetItem
                     : $targetItem.parents('.lv-drag-list').first();
                 const targetList = dragListMap.get($targetList[0]);
-                if (
-                    targetList &&
-                    dragList &&
-                    dragList.uuid !== targetList.uuid &&
-                    targetList.options.onDragIn
-                ) {
-                    targetList.options.onDragIn(1);
+
+                if (dragList && targetList) {
+                    // 同box拖动
+                    if (dragList.uuid === targetList.uuid) {
+                        const dragItemObj = dragItemMap.get(dragItem);
+                        const targetItemObj = dragItemMap.get(targetItem);
+                        const listData = dragList.options.data;
+                        const dataKey = dragList.options.key;
+                        if (dragItemObj && targetItemObj && listData.length) {
+                            const dragIndex = listData.findIndex(
+                                (c) => c[dataKey] === dragItemObj.item[dataKey]
+                            );
+                            const targetIndex = listData.findIndex(
+                                (c) => c[dataKey] === targetItemObj.item[dataKey]
+                            );
+                            // 交换数据位置
+                            if (dragIndex > -1 && targetIndex > -1) {
+                                const empty = listData[dragIndex];
+                                listData[dragIndex] = listData[targetIndex];
+                                listData[targetIndex] = empty;
+                            }
+                        }
+                        $log('drag finish -------------');
+                        if (dragList.options.onDragFinish) {
+                            dragList.options.onDragFinish();
+                        }
+                    }
+                    // 跨box拖动
+                    if (dragList.uuid !== targetList.uuid) {
+                        if (targetList.options.onDragIn) {
+                            targetList.options.onDragIn(1);
+                        }
+                    }
                 }
             }
         }
         resetSettings();
         $log('item drag end', e);
     }
+    return false;
 };
 
 // 可拖动项被拖动到其他项的事件
@@ -195,6 +222,7 @@ const bodyMouseOver = (e: any) => {
             $target.addClass('drag-over');
         }
     }
+    return false;
 };
 
 export const LvDrag: Directive = {
@@ -236,7 +264,7 @@ export const LvDrag: Directive = {
 };
 
 export const LvDragItem: Directive = {
-    mounted(el: HTMLElement, bind, vnode) {
+    mounted(el: HTMLElement, bind: DirectiveBinding<IDragItemOptions>, vnode) {
         const $el = $(el);
         const uuid = guid2();
 
@@ -244,9 +272,12 @@ export const LvDragItem: Directive = {
             el.classList.add(dragItemClassName);
         }
         $el.attr('data-uuid', uuid);
+        const item = bind.value && bind.value.item;
+        if (!item) $warn('LvDragItem must input item');
         dragItemMap.set(el, {
             uuid,
-            vnode
+            vnode,
+            item: item || {}
         });
     }
 };
